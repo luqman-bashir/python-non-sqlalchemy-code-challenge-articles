@@ -14,6 +14,9 @@ class Article:
         self._title = title
         Article.all.append(self)
 
+        author._articles.append(self)
+        magazine._articles.append(self)
+
     @property
     def title(self):
         return self._title
@@ -57,15 +60,14 @@ class Author:
     def add_article(self, magazine, title):
         if not isinstance(magazine, Magazine):
             raise TypeError("Magazine must be an instance of Magazine.")
-        article = Article(self, magazine, title)
-        self._articles.append(article)
-        magazine.articles.append(article)
-        return article
+        return Article(self, magazine, title)
 
     def magazines(self):
-        return list({article.magazine for article in self._articles})
+        return list({article.magazine for article in self.articles})
 
     def topic_areas(self):
+        if not self.articles:
+            return None
         return list({magazine.category for magazine in self.magazines()})
 
 
@@ -107,55 +109,39 @@ class Magazine:
         return self._articles
 
     def contributors(self):
-        return list({article.author for article in self._articles})
+        return list({article.author for article in self.articles})
 
     def article_titles(self):
-        return [article.title for article in self._articles]
+        return [article.title for article in self.articles] if self.articles else None
 
     def contributing_authors(self):
         from collections import Counter
-        author_counts = Counter(article.author for article in self._articles)
-        return [author for author, count in author_counts.items() if count > 2]
+        author_counts = Counter(article.author for article in self.articles)
+        contributors = [author for author, count in author_counts.items() if count > 2]
+        return contributors if contributors else None
 
     @classmethod
     def top_publisher(cls):
         return max(cls.all, key=lambda mag: len(mag.articles), default=None)
 
 
-author1 = Author("Luqman Bashir")
-author2 = Author("Abdullahi Aden")
+author = Author("Abdullahi Aden")
+print(author.name)
 
 
-mag1 = Magazine("Daily Nation", "General News")
-mag2 = Magazine("Taifa Ya Leo", "Taarifa Ya Leo")
+mag = Magazine("Tech Weekly", "Technology")
+print(mag.name)
+print(mag.category)
 
-article1 = author1.add_article(mag1, "AI Revolution")
-article2 = author1.add_article(mag2, "Fitness Trends")
-article3 = author2.add_article(mag1, "Blockchain Basics")
-article4 = author1.add_article(mag1, "Quantum Computing")
+article = Article(author, mag, "The Future of AI")
+print(article.title)
 
-for article in Article.all:
-    print(f"Title: {article.title}, Author: {article.author.name}, Magazine: {article.magazine.name}")
+print(article.author.name)
+print(article.magazine.name)
 
-# Name of the magazine wrote by author 1 
-for magazine in author1.magazines():
-    print(magazine.name)
+# invalid_author = Author("") # Name validation
 
-# Topic of author 2
-print(author2.topic_areas())
-
-#Contributer of mag1
-for contributor in mag1.contributors():
-    print(contributor.name)
-
-#Titles of mag1
-print(mag1.article_titles())
-
-#Magazine with top publisher
-print(Magazine.top_publisher().name)
-
-
-
+print(author.topic_areas())
 
 
 
